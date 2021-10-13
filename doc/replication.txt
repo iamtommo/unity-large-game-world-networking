@@ -1,0 +1,28 @@
+Replication procedure:
+- pack dense world
+- diff
+- determine what to send to each client
+
+- How do we determine what to send to each client?
+Compare the current state of the world with what the client has last seen.
+When we send data to a client, we tell the perception system what we sent, and the client tells us what they saw.
+So next update we ask the perception system what the client last saw and then we derive the update necessary for a client by diff(current_world, last_world_client_saw).
+That'll usually be larger than MTU so we sort the list of actors by priority and send as much as we can.
+
+- How do we diff(world1, world2)
+this is where having a sparse world becomes problematic. this diff operation needs to be super fast since we could have like
+500 clients and 50k actors. this diff routine then needs to be calculates per client for each actor (n^2 problem)
+
+we can partially solve this by diffing the entire world only _once_ and using bitmasks to store what changed for each actor.
+what happens then is that when we run an update per client, we can just ask for list of changes which happened
+since the client last saw the world.
+
+to diff(world1,world2) we obviously need to store world history. once again this is kinda bad to do if the world is sparse.
+so the trick is to pack the world into dense storage every tick and then it becomes way easier to diff worlds because
+it's just simple loop i.e.
+foreach(actor A in world) {
+    if (world[actor] != lastworld[actor]) {
+        actor changed
+    }
+}
+furthermore this is burst compilable so it becomes pretty fast.

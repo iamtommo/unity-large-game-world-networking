@@ -1,0 +1,7 @@
+replication procedure:
+var actors = all actors changed within cacheticks | datamask != 0
+var sorted_actors = sort(actors)
+
+for each client {
+
+}

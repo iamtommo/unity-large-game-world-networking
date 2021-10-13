@@ -1,0 +1,17 @@
+perception system exists so that the server can keep track of what clients have seen.
+from that we can derive what we need to send, and therefore only send actors and data which has changed.
+
+
+interface contract:
+- get tick where the client last saw actor A
+- get generation where the client last saw actor A
+
+input contract:
+- when we send data to client, tell perception system that we send data for actor A at tick T.
+- when we rcv client input, tell perception system client saw tick T.
+
+and nothing else.
+
+--NOTE
+unfortunately we need to keep track of actor generations we send to clients too.
+perhaps there's another solution but i can't think of one atm.

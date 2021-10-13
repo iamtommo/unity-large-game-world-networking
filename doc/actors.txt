@@ -1,0 +1,5 @@
+actors are the entities of the replication world.
+
+an actor is just an id (int16) along with a generation (int32).
+the generation counter is important because we don't want to run out of actor ids if we have high turnover.
+so when an actor is deleted we just increment the generation counter and free up the id.

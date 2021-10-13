@@ -1,0 +1,45 @@
+actor addition, change, deletion is covered by a generation number
+
+case: actor deletion
+- given a server history of 128 ticks at 30 ticks/second
+-
+
+
+
+actor is deleted, generation incremented
+now usually the client is _guaranteed_ to get an update for this actor with mask 000001 where 1 = generation and
+client can infer the fact that the actor was deleted (cos no new data).
+in the presence of data along with a generation increase then its a deletion and addition of a new actor tied in 1.
+
+problem is that since the server cant keep history forever and so the clients perception of an actor has to rollover
+when the old tick is discarded (i.e. 128 ticks later)
+when this happens then the server guarantees to send the actor _in whole_ back to the client
+but in the case where an actor is deleted and has no new data then the replication system will decide not to send the data
+since the actor is 'empty'. no idea how to elegantly fix this atm.
+
+possible solution is to keep server history forever, perhaps a rick hickey/google bigtable approach where we write changes to
+disk when we can no longer keep history in ram.
+note that we dont need to keep full dense world history in ram only the masks we derive from the diff stage.
+
+datamask size consideration:
+high bits i.e. 32 means we can spread data into smaller pieces i.e. split movement into: pos/rot/vel and have plenty of bits left over
+whereas 8bit/16bit mask means we pack data like pos/rot/vel into a single mask and so the bandwidth increases unless
+delta compression happens on a per-part basis which is totally possible.
+
+theory: 32k actors. 32bit mask per actor. max. 32 parts is ideal.
+1 tick = 128k bytes = 128kb
+30 ticks/sec = 3,840kb/s = 3.8mb/s
+
+
+
+
+
+LITERAL PROBLEM
+server has 4 tick history
+client last seen actor at tick - 4
+server rollover -> drops history at said tick and deletes actor
+
+
+or
+MAINTAIN SERVERSIDE VIEW OF ACTOR GENERATIONS - FOREVER. SO EVEN IN CASE OF ROLLOVER->ZERODATA FOR A PERCEIVED ACTOR
+WE STILL CHECK GENERATION AND MAKE SURE THE CLIENT GETS THE ACTOR.

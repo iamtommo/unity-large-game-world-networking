@@ -1,0 +1,32 @@
+every packet we receive from the server contains a partial world.
+this could actually be a full world if everything fits into the packet but nonetheless we treat it as partial.
+
+procedure:
+- read partial world
+- integrate
+
+the client maintains a 'master' partial world which is the accretion of partials we receive over time.
+this gives us many desirable properties since we can deal with updates in a purely functional manner.
+instead of being told 'this is a new actor' by the server as would be typical in event driven architectures,
+we can derive the addition&deletion of actors ourselves by simply diffing the newly updated world with our last world.
+
+basically:
+- list(new_actors) = actors in new_world but NOT in last_world
+- list(updates_actors) = actors in new_world AND in last_world
+- list(deleted_actors) = actors in last_world but NOT in new_world.
+
+not so fast. deleted actors don't work that simply, unfortunately.
+since we only ever see a partial view of the world because of bandwidth constraints, culling, etc
+we can't actually derive the deletion of an actor.
+
+Case 1: packet is full and couldnt fit some data for another nearby player.
+we'd then delete that player and probably recreate it next packet when we rcv data. ugly. (would flicker too)
+
+Case 2: consider a large player-made building like that of rust. if we moved out of range of updates for that building (culled) and considered that
+a deletion, we would delete the building to maintain a consistent world.
+
+so if its not a generic solution it'll just lead to ugly architectural hacks and we don't want that.
+
+the way we deal with deletions is by checking the generation counter for each actor we rcv over the network.
+if a generation counter has increased it means that the actor is deleted. and if the actor id was immediately taken up
+by a new actor, we'd receive full actor data in the same packet so we just delete the old and create the new.

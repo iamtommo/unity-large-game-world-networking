@@ -1,0 +1,15 @@
+current implementation is very explicit.
+explicit is good but its very hard to test without having explicit tests for each case.
+
+ideally the system would be atleast minorly generic.
+but which parts of the system?
+perception system is concise - doesn't even need the concept of extensibility.
+
+world packing kinda needs to be explicit for datagroups like motor[pos,rot,vel,jump,crouch,etc]
+rn all packing happens sequentially in a single system, explicitly --- not good
+
+the essential role of the replication system is to tell the programmer exactly what needs to be sent to the client
+and anything further than that becomes a different problem, i.e. encoding and sending data over the network.
+
+culling/sorting/MTU probably should be seperate and happen after we've asked the rep system what to do
+
